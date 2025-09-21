@@ -1,0 +1,36 @@
+name: daily-scrape
+on:
+  schedule: [{ cron: '5 2 * * *' }]
+  workflow_dispatch:
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - name: Build scraper
+        run: |
+          cd apps/scraper
+          npm ci
+          npm run build
+      - name: Run scraper
+        run: |
+          node apps/scraper/dist/scrape.js
+      - name: Commit data & shots
+        run: |
+          git config user.name "footer-bot"
+          git config user.email "bot@example.com"
+          git add apps/web/data apps/web/public/shots
+          git commit -m "chore: daily scrape $(date -u +%F)" || echo "no changes"
+          git push
+      - name: Trigger Vercel deploy (optional)
+        if: ${{ env.VERCEL_TOKEN && env.VERCEL_PROJECT_ID && env.VERCEL_ORG_ID }}
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        run: |
+          npx vercel deploy --prod --token $VERCEL_TOKEN --yes || true

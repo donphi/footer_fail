@@ -1,0 +1,49 @@
+version: "3.9"
+services:
+  web:
+    build:
+      context: ./apps/web
+    image: footerfail-web:latest
+    container_name: footerfail-web
+    env_file: .env
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./apps/web/data:/app/data:ro
+      - ./apps/web/public:/app/public:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  scraper:
+    build:
+      context: ./apps/scraper
+    env_file: .env
+    image: footerfail-scraper:latest
+    container_name: footerfail-scraper
+    environment:
+      - ROOT=/workspace
+      - TARGETS=/workspace/apps/scraper/seeds/targets.csv
+      - BRANDS=/workspace/apps/scraper/seeds/brands.csv
+    volumes:
+      - ./:/workspace
+    profiles: ["scrape"]
+
+  narrator:
+    build:
+      context: ./apps/narrator
+    env_file: .env
+    image: footerfail-narrator:latest
+    container_name: footerfail-narrator
+    environment:
+      - OPENROUTER_KEY=${OPENROUTER_KEY}
+      - AI_MODEL=${AI_MODEL:-anthropic/claude-3-5-haiku-20241022}
+      - NARRATOR_PERSONAS=${NARRATOR_PERSONAS:-chronos}
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+    volumes:
+      - ./:/workspace
+    profiles: ["narrate"]

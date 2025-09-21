@@ -1,0 +1,138 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Sohne Font Faces - Maximum contrast setup */
+@font-face {
+  font-family: 'Sohne';
+  src: url('/fonts/sohne/Sohne-Buch.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sohne';
+  src: url('/fonts/sohne/Sohne-BuchKursiv.woff2') format('woff2');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sohne';
+  src: url('/fonts/sohne/Sohne-Kraftig.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sohne';
+  src: url('/fonts/sohne/Sohne-KraftigKursiv.woff2') format('woff2');
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sohne';
+  src: url('/fonts/sohne/Sohne-Dreiviertelfett.woff2') format('woff2');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root { color-scheme: light dark; }
+html,body {
+  height: 100%;
+  font-family: 'Sohne', system-ui, sans-serif;
+  font-weight: 300; /* Default to Buch weight */
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+  max-width: 100vw; /* Ensure content doesn't exceed viewport */
+}
+body { @apply bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100; }
+
+/* Force Sohne font loading */
+* {
+  font-family: 'Sohne', system-ui, sans-serif;
+}
+
+/* Embla Carousel Styles */
+.embla {
+  position: relative;
+  width: 100%;
+  overflow: visible; /* Allow shadows to bleed */
+  padding: 40px 0 40px 0; /* Padding for shadow space */
+}
+
+.embla__container {
+  display: flex;
+  touch-action: pan-y;
+  margin-left: calc(var(--slide-spacing) * -1);
+  align-items: stretch; /* Ensure equal heights */
+  overflow: visible; /* Allow shadows within container */
+}
+
+.embla__slide {
+  transform: translate3d(0, 0, 0);
+  flex: 0 0 var(--slide-size);
+  min-width: 0;
+  padding-left: var(--slide-spacing);
+  display: flex; /* Make slide a flex container */
+}
+
+.embla__slide > * {
+  width: 100%; /* Make card fill slide width */
+}
+
+/* CSS Variables for responsive carousel */
+:root {
+  --slide-spacing: 1rem;
+  --slide-size: 85%;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --slide-spacing: 1.25rem;
+    --slide-size: 45%;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --slide-spacing: 1.5rem;
+    --slide-size: 31%;
+  }
+}
+
+/* Carousel hover effects */
+.embla__slide {
+  transition: transform 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.embla__slide:hover {
+  z-index: 50;
+  position: relative;
+}
+
+/* Ensure shadows don't get clipped */
+.embla__container {
+  overflow: visible;
+}
+
+/* Section spacing for shadows */
+section:has(.embla) {
+  overflow: visible; /* Allow shadows to bleed */
+  padding: 1rem 0;
+}
+
+/* Line clamp utility for comment truncation */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

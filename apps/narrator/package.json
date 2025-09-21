@@ -1,0 +1,19 @@
+{
+  "name": "footerfail-narrator",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node dist/narrator.js",
+    "build": "tsc",
+    "dev": "tsx src/narrator.ts"
+  },
+  "dependencies": {
+    "openai": "^4.72.0",
+    "@supabase/supabase-js": "^2.39.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.2",
+    "@types/node": "^22.5.4"
+  }
+}
