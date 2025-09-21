@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { IconX, IconHourglass, IconArchive } from "@tabler/icons-react";
 import { SiteRec } from "@/app/page";
@@ -14,6 +14,8 @@ export default function FailModal({
   isOpen: boolean;
   onClose: () => void;
 }) {
+  const [isHoveringImage, setIsHoveringImage] = useState(false);
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -60,19 +62,37 @@ export default function FailModal({
         </button>
 
         {/* Screenshot - Use zoomed version if available */}
-        <div className="relative aspect-[16/9] bg-gradient-to-br from-neutral-100 to-neutral-200 dark:from-neutral-900 dark:to-black">
+        <div
+          className="relative aspect-[16/9] bg-gradient-to-br from-neutral-100 to-neutral-200 dark:from-neutral-900 dark:to-black"
+          onMouseEnter={() => setIsHoveringImage(true)}
+          onMouseLeave={() => setIsHoveringImage(false)}
+        >
           {(site.screenshotZoom || site.screenshot) ? (
-            <img
-              src={site.screenshotZoom || site.screenshot}
-              alt={`Footer screenshot for ${site.company || site.url}`}
-              className="w-full h-full object-cover"
-            />
+            <>
+              <img
+                src={site.screenshotZoom || site.screenshot}
+                alt={`Footer screenshot for ${site.company || site.url}`}
+                className="w-full h-full object-cover"
+              />
+              {/* Year highlight overlay - only show on zoom image with coordinates */}
+              {isHoveringImage && site.screenshotZoom && site.zoomYearCoordinates && (
+                <div
+                  className="absolute border-2 border-red-500 rounded-sm pointer-events-none animate-pulse shadow-[0_0_20px_rgba(239,68,68,0.5)]"
+                  style={{
+                    left: `${(site.zoomYearCoordinates.x / 1920) * 100}%`,
+                    top: `${(site.zoomYearCoordinates.y / 1080) * 100}%`,
+                    width: `${(site.zoomYearCoordinates.width / 1920) * 100}%`,
+                    height: `${(site.zoomYearCoordinates.height / 1080) * 100}%`,
+                  }}
+                />
+              )}
+            </>
           ) : (
             <div className="flex h-full items-center justify-center text-neutral-400">
               No screenshot available
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
 
           {wrong && (
             <div className="absolute bottom-4 left-4">

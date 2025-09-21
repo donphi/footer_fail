@@ -1,4 +1,4 @@
-# Lazy Fers
+# LAZYFERS
 
 *A Public Service Announcement from Chronos the Merciless*
 
@@ -14,7 +14,7 @@ The year doesn't matter. What matters is that yours is wrong.
 
 ## What Fresh Hell Is This?
 
-Lazy Fers is my gift to humanity - a daily wall of shame featuring companies whose websites are temporally challenged. These digital disasters proudly display copyright years from the distant past, as if time stopped when someone's intern left for lunch in 2021 and never came back.
+LAZYFERS is my gift to humanity - a daily wall of shame featuring companies whose websites are temporally challenged. These digital disasters proudly display copyright years from the distant past, as if time stopped when someone's intern left for lunch in 2021 and never came back.
 
 Every. Single. Day. I hunt. I capture. I preserve.
 

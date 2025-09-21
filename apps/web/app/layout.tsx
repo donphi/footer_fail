@@ -5,15 +5,15 @@ import type { ReactNode } from 'react';
 
 export const metadata: Metadata = {
   title: {
-    default: 'Lazy Fers',
-    template: '%s • Lazy Fers',
+    default: 'LAZYFERS',
+    template: '%s • LAZYFERS',
   },
   description: 'Only what is wrong today. Immutable proof attached.',
   openGraph: {
-    title: 'Lazy Fers',
+    title: 'LAZYFERS',
     description: 'Only what is wrong today. Immutable proof attached.',
     url: '/',
-    siteName: 'Lazy Fers',
+    siteName: 'LAZYFERS',
     type: 'website',
   },
   robots: { index: true, follow: true },

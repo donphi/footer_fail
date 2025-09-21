@@ -6,8 +6,8 @@ export const revalidate = 0;
 
 export async function GET() {
   if (!supabase) {
-    return NextResponse.json([], { 
-      headers: { 'Cache-Control': 'no-store' } 
+    return NextResponse.json([], {
+      headers: { 'Cache-Control': 'no-store' }
     });
   }
 
@@ -22,13 +22,15 @@ export async function GET() {
         timestamp
       )
     `)
-    .order('verified_at', { ascending: false, nullsFirst: false });
+    .eq('is_top_featured', true)
+    .order('featured_order', { ascending: true })
+    .limit(2);
 
   if (error) {
-    console.error('Error fetching sites:', error);
-    return NextResponse.json([], { 
+    console.error('Error fetching top featured sites:', error);
+    return NextResponse.json([], {
       status: 500,
-      headers: { 'Cache-Control': 'no-store' } 
+      headers: { 'Cache-Control': 'no-store' }
     });
   }
 
@@ -55,6 +57,7 @@ export async function GET() {
     },
     screenshot: site.screenshot_url,
     screenshotZoom: site.year_screenshot_url,
+    footerScreenshot: site.footer_screenshot_url,
     zoomYearCoordinates: site.zoom_year_x ? {
       x: site.zoom_year_x,
       y: site.zoom_year_y,
@@ -64,7 +67,7 @@ export async function GET() {
     posts: site.posts || []
   }));
 
-  return NextResponse.json(transformed, { 
-    headers: { 'Cache-Control': 'no-store' } 
+  return NextResponse.json(transformed, {
+    headers: { 'Cache-Control': 'no-store' }
   });
 }

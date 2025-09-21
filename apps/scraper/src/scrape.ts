@@ -85,7 +85,8 @@ async function takeScreenshotWithRetry(
 async function runScreenshotOneCapture(url: string): Promise<{
   footerScreenshot: Buffer | null,
   yearLocation?: { year: number, bbox: { x0: number, y0: number, x1: number, y1: number } },
-  zoomScreenshot?: Buffer | null
+  zoomScreenshot?: Buffer | null,
+  zoomYearCoordinates?: { x: number, y: number, width: number, height: number }
 }> {
   console.log('    Taking high-resolution screenshot with ScreenshotOne...');
 
@@ -159,18 +160,20 @@ async function runScreenshotOneCapture(url: string): Promise<{
       .resize(1920, null, { fit: 'inside', withoutEnlargement: false })
       .jpeg({ quality: 85, progressive: true })
       .toBuffer();
-    
+
     return {
       footerScreenshot: footerBuffer,
       yearLocation: undefined,
-      zoomScreenshot: null
+      zoomScreenshot: null,
+      zoomYearCoordinates: undefined
     };
   }
 
   // Create zoom from the year found IN THE FOOTER
   let zoomBuffer = null;
+  let zoomYearCoordinates = undefined;
   const bbox = ocrResult.yearLocation.bbox;
-  
+
   // Adjust coordinates back to full page space
   const adjustedBbox = {
     x0: bbox.x0,
@@ -178,30 +181,59 @@ async function runScreenshotOneCapture(url: string): Promise<{
     x1: bbox.x1,
     y1: bbox.y1 + footerOffset.top
   };
-  
+
   console.log(`    Year ${ocrResult.yearLocation.year} found IN FOOTER`);
   console.log(`    Creating zoom from footer location...`);
-  
+
   try {
     const metadata = await sharp(fullPageBuffer).metadata();
     if (metadata.width && metadata.height) {
       // Center on year and extract
       const yearCenterX = (adjustedBbox.x0 + adjustedBbox.x1) / 2;
       const yearCenterY = (adjustedBbox.y0 + adjustedBbox.y1) / 2;
-      
+
       const extractWidth = 1920;
       const extractHeight = 1080;
-      
+
       let extractLeft = Math.round(yearCenterX - extractWidth / 2);
       let extractTop = Math.round(yearCenterY - extractHeight / 2);
-      
+
       // Bounds checking
       extractLeft = Math.max(0, Math.min(extractLeft, metadata.width - extractWidth));
       extractTop = Math.max(0, Math.min(extractTop, metadata.height - extractHeight));
-      
+
       const finalWidth = Math.min(extractWidth, metadata.width - extractLeft);
       const finalHeight = Math.min(extractHeight, metadata.height - extractTop);
-      
+
+      // Calculate the year's position in the zoomed image
+      // First calculate the year's position relative to the extracted region
+      const yearXInExtract = adjustedBbox.x0 - extractLeft;
+      const yearYInExtract = adjustedBbox.y0 - extractTop;
+      const yearWidthInExtract = adjustedBbox.x1 - adjustedBbox.x0;
+      const yearHeightInExtract = adjustedBbox.y1 - adjustedBbox.y0;
+
+      // Then scale these coordinates to the final 1920x1080 zoom image
+      // Since we're using 'cover' fit, we need to calculate the scale factor
+      const scaleX = 1920 / finalWidth;
+      const scaleY = 1080 / finalHeight;
+      const scale = Math.max(scaleX, scaleY); // 'cover' uses the larger scale
+
+      // Calculate the offset due to 'center' positioning
+      const scaledWidth = finalWidth * scale;
+      const scaledHeight = finalHeight * scale;
+      const offsetX = (1920 - scaledWidth) / 2;
+      const offsetY = (1080 - scaledHeight) / 2;
+
+      // Calculate final coordinates in the zoomed image
+      zoomYearCoordinates = {
+        x: Math.round(yearXInExtract * scale + offsetX),
+        y: Math.round(yearYInExtract * scale + offsetY),
+        width: Math.round(yearWidthInExtract * scale),
+        height: Math.round(yearHeightInExtract * scale)
+      };
+
+      console.log(`    Year coordinates in zoom: x=${zoomYearCoordinates.x}, y=${zoomYearCoordinates.y}, width=${zoomYearCoordinates.width}, height=${zoomYearCoordinates.height}`);
+
       const extractedRegion = await sharp(fullPageBuffer)
         .extract({
           left: extractLeft,
@@ -232,7 +264,8 @@ async function runScreenshotOneCapture(url: string): Promise<{
   return {
     footerScreenshot: footerBuffer,
     yearLocation: ocrResult.yearLocation,
-    zoomScreenshot: zoomBuffer
+    zoomScreenshot: zoomBuffer,
+    zoomYearCoordinates: zoomYearCoordinates
   };
 }
 
@@ -624,7 +657,8 @@ async function scanSinglePage(url: string): Promise<{
   years: number[],
   yearLocation?: { year: number, bbox: { x0: number, y0: number, x1: number, y1: number } },
   footerScreenshot: Buffer | null,
-  zoomScreenshot: Buffer | null
+  zoomScreenshot: Buffer | null,
+  zoomYearCoordinates?: { x: number, y: number, width: number, height: number }
 }> {
   try {
     console.log(`  Scanning: ${url}`);
@@ -636,7 +670,8 @@ async function scanSinglePage(url: string): Promise<{
       return {
         years: [],
         footerScreenshot: null,
-        zoomScreenshot: null
+        zoomScreenshot: null,
+        zoomYearCoordinates: undefined
       };
     }
 
@@ -647,7 +682,8 @@ async function scanSinglePage(url: string): Promise<{
       years: years,
       yearLocation: result.yearLocation,
       footerScreenshot: result.footerScreenshot,
-      zoomScreenshot: result.zoomScreenshot || null
+      zoomScreenshot: result.zoomScreenshot || null,
+      zoomYearCoordinates: result.zoomYearCoordinates
     };
 
   } catch (err) {
@@ -655,7 +691,8 @@ async function scanSinglePage(url: string): Promise<{
     return {
       years: [],
       footerScreenshot: null,
-      zoomScreenshot: null
+      zoomScreenshot: null,
+      zoomYearCoordinates: undefined
     };
   }
 }
@@ -757,6 +794,10 @@ async function processUrl(url: string): Promise<void> {
     footer_screenshot_hash: footerScreenshotHash,
     year_screenshot_url: yearScreenshotUrl,
     year_screenshot_hash: yearScreenshotHash,
+    zoom_year_x: result.zoomYearCoordinates?.x,
+    zoom_year_y: result.zoomYearCoordinates?.y,
+    zoom_year_width: result.zoomYearCoordinates?.width,
+    zoom_year_height: result.zoomYearCoordinates?.height,
     ...timestampFields,
     ...(status === 'stale' && {
       proof_internet_archive: proofIA,

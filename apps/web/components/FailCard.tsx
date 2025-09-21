@@ -13,7 +13,7 @@ import {
 } from "@tabler/icons-react";
 import { SiteRec } from "@/app/page";
 
-export default function FailCard({ rec, isClickable = false }: { rec: SiteRec; isClickable?: boolean }) {
+export default function FailCard({ rec, isClickable = false, compact = false }: { rec: SiteRec; isClickable?: boolean; compact?: boolean }) {
   const current = new Date().getUTCFullYear();
   const wrong = rec.detectedYears?.length ? Math.max(...rec.detectedYears) : undefined;
   const yearsOff = wrong ? current - wrong : 0;
@@ -135,10 +135,10 @@ export default function FailCard({ rec, isClickable = false }: { rec: SiteRec; i
         )}
       </div>
 
-      <CardContent className="p-4 space-y-3 flex-1 flex flex-col">
+      <CardContent className={`${compact ? 'p-3 space-y-2' : 'p-4 space-y-3'} flex-1 flex flex-col`}>
         {/* Company name with stark typography */}
         <div className="space-y-1">
-          <h3 className="font-thick text-xl text-black dark:text-white">
+          <h3 className={`font-thick ${compact ? 'text-sm truncate' : 'text-xl'} text-black dark:text-white`}>
             {rec.company || new URL(rec.url).hostname.replace('www.', '')}
           </h3>
           <a
@@ -146,7 +146,7 @@ export default function FailCard({ rec, isClickable = false }: { rec: SiteRec; i
             target="_blank"
             rel="noreferrer"
             onClick={(e) => isClickable && e.stopPropagation()}
-            className="text-sm text-neutral-500 hover:text-black dark:hover:text-white transition-colors inline-block"
+            className={`${compact ? 'text-xs truncate' : 'text-sm'} text-neutral-500 hover:text-black dark:hover:text-white transition-colors inline-block`}
           >
             {new URL(rec.url).hostname}
           </a>
@@ -157,7 +157,7 @@ export default function FailCard({ rec, isClickable = false }: { rec: SiteRec; i
           {tags.map((tag, i) => (
             <div
               key={i}
-              className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${tag.textColor} bg-gradient-to-r ${tag.gradient} shadow-lg`}
+              className={`inline-flex items-center ${compact ? 'px-2 py-0.5 text-[10px]' : 'px-3 py-1 text-xs'} rounded-full font-medium ${tag.textColor} bg-gradient-to-r ${tag.gradient} shadow-lg`}
             >
               <span className="font-thick tracking-wider uppercase">{tag.label}</span>
             </div>
@@ -165,11 +165,13 @@ export default function FailCard({ rec, isClickable = false }: { rec: SiteRec; i
         </div>
 
         {/* AI Comment with dramatic styling - Fixed height for 2 lines */}
-        <div className="border-l-4 border-gradient-to-b from-red-600 to-purple-600 pl-4 flex-1">
-          <p className="text-sm leading-relaxed text-neutral-700 dark:text-neutral-300 font-thin italic line-clamp-2 min-h-[2.5rem]">
-            {latestComment}
-          </p>
-        </div>
+        {!compact && (
+          <div className="border-l-4 border-gradient-to-b from-red-600 to-purple-600 pl-4 flex-1">
+            <p className="text-sm leading-relaxed text-neutral-700 dark:text-neutral-300 font-thin italic line-clamp-2 min-h-[2.5rem]">
+              {latestComment}
+            </p>
+          </div>
+        )}
 
         {/* Proof links with subtle styling - always at bottom */}
         {(rec.proof?.internetArchive || rec.proof?.archiveToday) && (
